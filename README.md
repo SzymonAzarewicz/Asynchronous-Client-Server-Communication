@@ -1,37 +1,34 @@
-# Asynchroniczne przesyłanie danych z konwersją obrazów na ASCII art
+# Aplikacja Komunikacyjna Klient-Serwer
 
-## Funkcje i cechy systemu:
-- Skrypt pythonowy odpalający serwera i klienta
-- Użycie wątków
-- Komunikacja asynchroniczna z użyciem wątków
-- Konwersja obrazów do ASCII art
+## 🚀 Funkcjonalności
 
-## Wymagania
-- Python 3.x
-- Biblioteka Pillow (PIL) - `pip install pillow`
+### Podstawowe
+- Komunikacja TCP/IP między wieloma klientami a serwerem
+- Wysyłanie wiadomości tekstowych w czasie rzeczywistym
+- Obsługa wielu klientów równocześnie (wątki)
 
-## Użycie
+### Zaawansowane
+1. **Konwersja obrazu na ASCII Art**
+   - Automatyczne dostosowywanie szerokości do wymiarów obrazu
+   - Domyślny plik `emoji.png`
+   - Obsługa formatów: PNG, JPG, JPEG, BMP
 
-### Uruchomienie serwera
-```
-python serwer_w.py
-```
+2. **Przesyłanie dokumentów DOCX**
+   - Wybór pliku przez okno dialogowe
+   - Ekstrakcja tekstu z dokumentu
+   - Automatyczne zapisywanie na serwerze z unikalną nazwą
+   - Powiadamianie innych klientów o przesłanym dokumencie
 
-### Uruchomienie klienta
-```
-python klient_w.py
-```
+3. **Interfejs Użytkownika**
+   - Dwie wersje klienta:
+     - **Konsolowa** [klient_w.py]
+     - **Graficzna GUI** [klient_gui.py] z użyciem PySide6
+   - Możliwość wyboru interfejsu przez launcher [klient.py]
 
-### Konwersja obrazu na ASCII art
-1. W interfejsie klienta wybierz opcję "2. Konwertuj obraz na ASCII art"
-2. Podaj ścieżkę do pliku obrazu (np. `test_image.png`)
-3. Podaj szerokość ASCII art (domyślnie 100 znaków)
-4. ASCII art zostanie wyświetlony w konsoli klienta
+4. **Zabezpieczenia i Obsługa Błędów**
+   - Podstawowa walidacja plików
+   - Komunikaty o błędach w GUI
+   - Automatyczne czyszczenie historii wiadomości
 
-## Jak to działa
-- Klient wysyła żądanie do serwera w formacie JSON, zawierające ścieżkę do obrazu
-- Serwer odczytuje obraz, przetwarza go na ASCII art i odsyła wynik do klienta
-- Klient odbiera i wyświetla ASCII art
-
-## Testowanie
-W repozytorium znajduje się przykładowy plik obrazu `test_image.png` do testowania funkcjonalności.
+## 📦 Wymagania
+- Python 3.9+
