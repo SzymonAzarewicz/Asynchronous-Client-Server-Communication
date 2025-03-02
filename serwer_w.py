@@ -93,9 +93,14 @@ def save_docx_file(file_data, file_name, client_name):
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         safe_client_name = ''.join(c for c in client_name if c.isalnum() or c in [' ', '_']).strip().replace(' ', '_')
         
+        # Create a client-specific folder
+        client_folder = os.path.join(DOCX_FOLDER, safe_client_name)
+        if not os.path.exists(client_folder):
+            os.makedirs(client_folder)
+        
         base_name, ext = os.path.splitext(file_name)
-        new_filename = f"{base_name}_{safe_client_name}_{timestamp}{ext}"
-        file_path = os.path.join(DOCX_FOLDER, new_filename)
+        new_filename = f"{base_name}_{timestamp}{ext}"
+        file_path = os.path.join(client_folder, new_filename)
         
         with open(file_path, 'wb') as f:
             f.write(file_bytes)
@@ -149,21 +154,25 @@ def handle_client(client):
                         
                         print(f"Zapisano plik: {saved_path}")
                         
+                        # Get the client folder name for the response
+                        safe_client_name = ''.join(c for c in client_name if c.isalnum() or c in [' ', '_']).strip().replace(' ', '_')
+                        client_folder_name = os.path.join(DOCX_FOLDER, safe_client_name)
+                        
                         response = json.dumps({
                             'type': 'docx_response', 
-                            'message': f"Plik {file_name} został pomyślnie odebrany i zapisany na serwerze."
+                            'message': f"Plik {file_name} został pomyślnie odebrany i zapisany w folderze '{client_folder_name}' na serwerze."
                         })
                         client.socket.send(response.encode())
                         
                         notification = json.dumps({
                             'type': 'text',
-                            'message': f"Użytkownik {client_name} przesłał plik {file_name} do serwera."
+                            'message': f"Użytkownik {client_name} przesłał plik {file_name} do folderu '{client_folder_name}' na serwerze."
                         })
                         broadcast(notification.encode(), client)
                         
                         document_notification = json.dumps({
                             'type': 'text',
-                            'message': f"Zawartość dokumentu {file_name} od {client_name}:\n\n{document_text}"
+                            'message': f"Zawartość dokumentu {file_name} od {client_name} (zapisanego w folderze '{client_folder_name}'):\n\n{document_text}"
                         })
                         broadcast(document_notification.encode(), client)
                         
