@@ -36,7 +36,6 @@ def send_image_request(client, image_path, width, client_name):
         return
         
     try:
-        # Read and encode the image
         with open(image_path, 'rb') as img_file:
             img_data = base64.b64encode(img_file.read()).decode()
             
@@ -52,11 +51,9 @@ def send_image_request(client, image_path, width, client_name):
         print(f"Błąd wysyłania dla {client_name}: {str(e)}")
 
 def send_docx_file(client, client_name):
-    # Ukryj główne okno Tk
     root = Tk()
     root.withdraw()
     
-    # Otwórz okno wyboru pliku
     file_path = filedialog.askopenfilename(
         title="Wybierz plik DOCX",
         filetypes=[("Dokumenty Word", "*.docx")]
@@ -73,7 +70,6 @@ def send_docx_file(client, client_name):
         return
         
     try:
-        # Odczytaj i zakoduj plik
         with open(file_path, 'rb') as docx_file:
             file_data = base64.b64encode(docx_file.read()).decode()
             
@@ -86,7 +82,6 @@ def send_docx_file(client, client_name):
             'client_name': client_name
         }
         
-        # Podziel na mniejsze części, jeśli plik jest duży
         json_data = json.dumps(request)
         client.send(json_data.encode())
         print(f"Wysłano plik DOCX: {file_name} od {client_name}")
@@ -112,13 +107,24 @@ def send_message(client, client_name):
             client.send(json.dumps(request).encode())
         elif choice == '2':
             image_path = 'emoji.png'
-            try:
-                term_width = (shutil.get_terminal_size().columns * 2) // 3
-            except:
-                term_width = 60
+            
+            if not os.path.exists(image_path):
+                print(f"Błąd: Plik {image_path} nie istnieje.")
+                continue
                 
-            width_input = input(f"[{client_name}] Podaj szerokość ASCII art (domyślnie {term_width}): ")
-            width = int(width_input) if width_input.isdigit() else term_width
+            try:
+                with Image.open(image_path) as img:
+                    img_width, img_height = img.size
+                    suggested_width = min(120, img_width // 2)
+            except:
+                try:
+                    term_width = (shutil.get_terminal_size().columns * 2) // 3
+                except:
+                    term_width = 60
+                suggested_width = term_width
+                
+            width_input = input(f"[{client_name}] Podaj szerokość ASCII art (domyślnie {suggested_width}): ")
+            width = int(width_input) if width_input.isdigit() else suggested_width
             send_image_request(client, image_path, width, client_name)
         elif choice == '3':
             send_docx_file(client, client_name)
