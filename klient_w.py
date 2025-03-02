@@ -6,6 +6,7 @@ import shutil
 import base64
 from PIL import Image
 import io
+from tkinter import Tk, filedialog
 
 def receive_messages(client, client_name):
     while True:
@@ -19,6 +20,8 @@ def receive_messages(client, client_name):
                 if json_response.get('type') == 'ascii_response':
                     print("\nOdpowiedź serwera dla", client_name + ":")
                     print(json_response.get('data', 'No data received'))
+                elif json_response.get('type') == 'docx_response':
+                    print(f"\nOdpowiedź serwera dla {client_name}: {json_response.get('message', 'Brak wiadomości')}")
                 else:
                     print(f"\nOdpowiedź serwera dla {client_name}: {json_response}")
             except json.JSONDecodeError:
@@ -48,13 +51,56 @@ def send_image_request(client, image_path, width, client_name):
     except Exception as e:
         print(f"Błąd wysyłania dla {client_name}: {str(e)}")
 
+def send_docx_file(client, client_name):
+    # Ukryj główne okno Tk
+    root = Tk()
+    root.withdraw()
+    
+    # Otwórz okno wyboru pliku
+    file_path = filedialog.askopenfilename(
+        title="Wybierz plik DOCX",
+        filetypes=[("Dokumenty Word", "*.docx")]
+    )
+    
+    root.destroy()
+    
+    if not file_path:
+        print("Anulowano wybór pliku.")
+        return
+        
+    if not os.path.exists(file_path):
+        print(f"Błąd: Plik {file_path} nie istnieje.")
+        return
+        
+    try:
+        # Odczytaj i zakoduj plik
+        with open(file_path, 'rb') as docx_file:
+            file_data = base64.b64encode(docx_file.read()).decode()
+            
+        file_name = os.path.basename(file_path)
+        
+        request = {
+            'type': 'docx_file',
+            'file_data': file_data,
+            'file_name': file_name,
+            'client_name': client_name
+        }
+        
+        # Podziel na mniejsze części, jeśli plik jest duży
+        json_data = json.dumps(request)
+        client.send(json_data.encode())
+        print(f"Wysłano plik DOCX: {file_name} od {client_name}")
+    except Exception as e:
+        print(f"Błąd wysyłania pliku dla {client_name}: {str(e)}")
+
 def send_message(client, client_name):
     while True:
         print(f"\n[{client_name}] Wybierz opcję:")
         print("1. Wyślij wiadomość tekstową")
         print("2. Konwertuj obraz na ASCII art")
+        print("3. Wyślij plik DOCX")
         
-        choice = input(f"[{client_name}] Twój wybór (1/2): ")
+        choice = input(f"[{client_name}] Twój wybór (1/2/3): ")
         
         if choice == '1':
             message = input(f"[{client_name}] Wpisz wiadomość: ")
@@ -74,6 +120,8 @@ def send_message(client, client_name):
             width_input = input(f"[{client_name}] Podaj szerokość ASCII art (domyślnie {term_width}): ")
             width = int(width_input) if width_input.isdigit() else term_width
             send_image_request(client, image_path, width, client_name)
+        elif choice == '3':
+            send_docx_file(client, client_name)
         else:
             print("Nieprawidłowy wybór. Spróbuj ponownie.")
 
